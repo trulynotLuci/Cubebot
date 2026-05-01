@@ -1,6 +1,6 @@
 // =============================================
 //  CUBEBOT — app.js (Supabase Version)
-//  Credentials loaded from config.js
+//  Works with both local config.js and Vercel env variables
 // =============================================
 
 // Wait for Supabase to load
@@ -12,17 +12,32 @@
     return;
   }
   
-  // Check if config is loaded
-  if (typeof window.SUPABASE_CONFIG === 'undefined') {
-    console.error('❌ config.js not loaded! Make sure it exists in the same folder.');
-    return;
-  }
-  
   console.log('Supabase loaded, initializing...');
   
-  // Load credentials from config.js
-  const SUPABASE_URL = window.SUPABASE_CONFIG.URL;
-  const SUPABASE_ANON_KEY = window.SUPABASE_CONFIG.ANON_KEY;
+  // Get Supabase credentials - works on both local and Vercel
+  let SUPABASE_URL = null;
+  let SUPABASE_ANON_KEY = null;
+  
+  // Try to get from Vercel environment variables first
+  if (typeof process !== 'undefined' && process.env) {
+    SUPABASE_URL = process.env.VITE_SUPABASE_URL;
+    SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY;
+  }
+  
+  // Fallback to local config.js (for development)
+  if ((!SUPABASE_URL || !SUPABASE_ANON_KEY) && typeof window.SUPABASE_CONFIG !== 'undefined') {
+    SUPABASE_URL = window.SUPABASE_CONFIG.URL;
+    SUPABASE_ANON_KEY = window.SUPABASE_CONFIG.ANON_KEY;
+    console.log('Using credentials from config.js');
+  }
+  
+  // If still no credentials, show error
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    console.error('❌ Supabase credentials missing!');
+    console.error('For local development: create config.js file');
+    console.error('For Vercel: add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables');
+    return;
+  }
 
   // Create Supabase client
   window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
