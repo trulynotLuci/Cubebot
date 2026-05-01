@@ -1,0 +1,17 @@
+# Ignore config file with secrets
+config.js
+
+# VS Code workspace settings
+.vscode/
+*.code-workspace
+
+# macOS system files
+.DS_Store
+
+# Windows system files
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.log
+*.swp

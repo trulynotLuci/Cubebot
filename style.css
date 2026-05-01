@@ -1,0 +1,163 @@
+/* =============================================
+   CUBEBOT — style.css
+   Shared styles for loginpage.html and registerpage.html
+   ============================================= */
+
+/* --- Reset --- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* --- Base --- */
+body {
+  font-family: sans-serif;
+  background-color: #f0f2f5;
+  color: #1a1a1a;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* --- Card container --- */
+#login-section,
+#register-section {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 40px 36px;
+  width: 100%;
+  max-width: 420px;
+  border: 1px solid #e0e0e0;
+}
+
+/* --- Heading --- */
+h1 {
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #111111;
+}
+
+/* --- Subtitle --- */
+p {
+  font-size: 14px;
+  color: #666666;
+  margin-bottom: 24px;
+}
+
+/* --- Form --- */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* --- Labels --- */
+label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333333;
+  margin-bottom: 4px;
+  display: block;
+}
+
+/* --- Inputs --- */
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  width: 100%;
+  padding: 11px 14px;
+  font-size: 14px;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+  background-color: #fafafa;
+  color: #1a1a1a;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus {
+  border-color: #4a90e2;
+  background-color: #ffffff;
+}
+
+input::placeholder {
+  color: #aaaaaa;
+}
+
+/* --- Error message --- */
+#login-error,
+#register-error {
+  font-size: 13px;
+  color: #e53e3e;
+  min-height: 18px;
+  margin: 0;
+}
+
+/* --- Success message --- */
+#register-success {
+  font-size: 13px;
+  color: #38a169;
+  min-height: 18px;
+  margin: 0;
+}
+
+/* --- Submit button --- */
+button[type="submit"] {
+  width: 100%;
+  padding: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  background-color: #4a90e2;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+button[type="submit"]:hover {
+  background-color: #357abd;
+}
+
+button[type="submit"]:active {
+  transform: scale(0.98);
+}
+
+/* --- Bottom link --- */
+#login-section > p:last-child,
+#register-section > p:last-child {
+  text-align: center;
+  margin-top: 20px;
+  margin-bottom: 0;
+  font-size: 13px;
+  color: #666666;
+}
+
+a {
+  color: #4a90e2;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* --- Responsive --- */
+@media (max-width: 480px) {
+  #login-section,
+  #register-section {
+    padding: 28px 20px;
+  }
+
+  h1 {
+    font-size: 22px;
+  }
+}

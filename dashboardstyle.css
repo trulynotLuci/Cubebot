@@ -1,0 +1,551 @@
+/* =============================================
+   CUBEBOT — dashboardstyle.css
+   Dashboard styles for dashboard.html
+   ============================================= */
+
+/* --- Reset --- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* --- Base --- */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: #f0f2f5;
+  color: #1a1a1a;
+  min-height: 100vh;
+  margin: 0;
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px; /* Important for active highlighter */
+}
+
+/* --- Dashboard Layout --- */
+#dashboard {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* --- Sidebar (Desktop) --- */
+#sidebar {
+  width: 240px;
+  background-color: #1a1a1a;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  padding: 24px 20px;
+  z-index: 100;
+  transition: left 0.3s ease;
+}
+
+#sidebar-top {
+  margin-bottom: 32px;
+}
+
+#sidebar-top h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+#welcome-user {
+  font-size: 13px;
+  color: #888888;
+  margin-bottom: 0;
+}
+
+#sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.nav-link {
+  display: block;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #aaaaaa;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.nav-link:hover {
+  background-color: #2a2a2a;
+  color: #ffffff;
+}
+
+.nav-link.active {
+  background-color: #4a90e2 !important;
+  color: #ffffff !important;
+}
+
+#sidebar-bottom {
+  padding-top: 20px;
+  border-top: 1px solid #333333;
+}
+
+#logout-btn {
+  width: 100%;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  background-color: transparent;
+  color: #ff6b6b;
+  border: 1px solid #ff6b6b;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+#logout-btn:hover {
+  background-color: #ff6b6b;
+  color: #ffffff;
+}
+
+/* --- Main Content --- */
+#main-content {
+  flex: 1;
+  margin-left: 240px;
+  padding: 32px 40px;
+  max-width: 100%;
+}
+
+/* --- Section Cards --- */
+.dashboard-section {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 28px 32px;
+  margin-bottom: 24px;
+  border: 1px solid #e0e0e0;
+  scroll-margin-top: 80px; /* Important for active highlighter */
+}
+
+.dashboard-section h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111111;
+  margin-bottom: 8px;
+}
+
+.dashboard-section > p {
+  font-size: 14px;
+  color: #666666;
+  margin-bottom: 24px;
+}
+
+/* --- Mode Grid --- */
+#mode-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.mode-btn {
+  padding: 16px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  background-color: #f5f7fa;
+  color: #333333;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s, border-color 0.2s;
+}
+
+.mode-btn:hover {
+  background-color: #4a90e2;
+  color: #ffffff;
+  border-color: #4a90e2;
+}
+
+.mode-btn:active {
+  background-color: #357abd;
+  transform: scale(0.97);
+}
+
+#mode-feedback {
+  font-size: 13px;
+  color: #38a169;
+  min-height: 18px;
+}
+
+/* --- Form Fields --- */
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 400px;
+}
+
+.field-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333333;
+}
+
+.field-group input {
+  padding: 12px 14px;
+  font-size: 14px;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+  background-color: #fafafa;
+  color: #1a1a1a;
+  outline: none;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.field-group input:focus {
+  border-color: #4a90e2;
+  background-color: #ffffff;
+}
+
+.field-group input::placeholder {
+  color: #aaaaaa;
+}
+
+.field-group button {
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  background-color: #4a90e2;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  align-self: flex-start;
+}
+
+.field-group button:hover {
+  background-color: #357abd;
+}
+
+.field-group button:active {
+  transform: scale(0.98);
+}
+
+/* --- Connection Status --- */
+#connect-status {
+  font-size: 13px;
+  color: #666666;
+  min-height: 18px;
+  margin-top: 12px;
+}
+
+/* --- Bot Name Feedback --- */
+#botname-feedback {
+  font-size: 13px;
+  color: #38a169;
+  min-height: 18px;
+  margin-top: 12px;
+}
+
+/* --- Alarm Section --- */
+.alarm-block {
+  margin-bottom: 24px;
+}
+
+.alarm-block h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #222222;
+  margin-bottom: 6px;
+}
+
+.alarm-block > p {
+  margin-bottom: 16px;
+}
+
+.alarm-block hr {
+  border: none;
+  border-top: 1px solid #e0e0e0;
+  margin: 24px 0;
+}
+
+.alarm-block .field-group {
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.alarm-block .field-group label {
+  flex: 1;
+  min-width: 140px;
+}
+
+.alarm-block .field-group input {
+  flex: 1;
+  min-width: 140px;
+}
+
+.alarm-block .field-group button {
+  flex: 0;
+}
+
+#alarm-status {
+  font-size: 13px;
+  color: #38a169;
+  min-height: 18px;
+  margin-top: 12px;
+}
+
+/* --- Pomodoro Display --- */
+#pomo-display {
+  background-color: #1a1a1a;
+  border-radius: 12px;
+  padding: 24px;
+  margin: 20px 0;
+  text-align: center;
+  max-width: 200px;
+}
+
+#pomo-time {
+  font-size: 42px;
+  font-weight: 700;
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 2px;
+  transition: color 0.3s ease;
+}
+
+#pomo-status {
+  font-size: 13px;
+  color: #666666;
+  min-height: 18px;
+}
+
+/* --- Account Section --- */
+#account-info {
+  background-color: #f5f7fa;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+  max-width: 400px;
+}
+
+.account-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.account-row:last-child {
+  border-bottom: none;
+}
+
+.account-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #666666;
+}
+
+#account-username,
+#account-email {
+  font-size: 14px;
+  color: #333333;
+  font-weight: 500;
+}
+
+#logout-btn-main {
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  background-color: transparent;
+  color: #ff6b6b;
+  border: 1px solid #ff6b6b;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+#logout-btn-main:hover {
+  background-color: #ff6b6b;
+  color: #ffffff;
+}
+
+/* Focus styles for better accessibility */
+button:focus, 
+input:focus, 
+.nav-link:focus {
+  outline: 2px solid #4a90e2;
+  outline-offset: 2px;
+}
+
+/* =============================================
+   MOBILE RESPONSIVE (FIXED)
+   ============================================= */
+
+/* Mobile Menu Button */
+.mobile-menu-btn {
+  display: none;
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  z-index: 1001;
+  background: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 15px;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* Tablet and Mobile Styles */
+@media (max-width: 768px) {
+  /* Show mobile menu button */
+  .mobile-menu-btn {
+    display: block;
+  }
+  
+  /* Sidebar becomes slide-out menu */
+  #sidebar {
+    position: fixed;
+    left: -280px;
+    top: 0;
+    width: 260px;
+    height: 100vh;
+    z-index: 1000;
+    box-shadow: none;
+    transition: left 0.3s ease;
+  }
+  
+  #sidebar.mobile-open {
+    left: 0;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+  }
+  
+  /* Hide sidebar-top elements in mobile menu */
+  #sidebar-top h2 {
+    font-size: 18px;
+  }
+  
+  /* Main content takes full width */
+  #main-content {
+    margin-left: 0;
+    padding: 60px 16px 20px 16px;
+  }
+  
+  /* Section cards have smaller padding */
+  .dashboard-section {
+    padding: 16px;
+    margin-bottom: 16px;
+    scroll-margin-top: 70px;
+  }
+  
+  .dashboard-section h2 {
+    font-size: 18px;
+  }
+  
+  /* Mode grid becomes 2 columns */
+  #mode-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  
+  .mode-btn {
+    padding: 12px 8px;
+    font-size: 13px;
+  }
+  
+  /* Form fields full width */
+  .field-group {
+    max-width: 100%;
+  }
+  
+  .field-group input,
+  .field-group button {
+    width: 100%;
+  }
+  
+  /* Alarm fields stack vertically */
+  .alarm-block .field-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .alarm-block .field-group label,
+  .alarm-block .field-group input {
+    min-width: 100%;
+  }
+  
+  /* Pomodoro display full width */
+  #pomo-display {
+    max-width: 100%;
+  }
+  
+  #pomo-time {
+    font-size: 32px;
+  }
+  
+  /* Account info full width */
+  #account-info {
+    max-width: 100%;
+  }
+  
+  .account-row {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  /* Touch-friendly button sizes */
+  button, 
+  .mode-btn,
+  .nav-link,
+  #logout-btn,
+  #logout-btn-main {
+    min-height: 44px;
+  }
+  
+  input, 
+  select {
+    min-height: 44px;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
+
+/* Small Mobile Styles */
+@media (max-width: 480px) {
+  /* Mode grid becomes 1 column */
+  #mode-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .dashboard-section {
+    padding: 12px;
+  }
+  
+  .dashboard-section h2 {
+    font-size: 16px;
+  }
+  
+  .mode-btn {
+    padding: 10px;
+    font-size: 12px;
+  }
+}
+
+/* Fix for active highlighter on mobile */
+@media (max-width: 768px) {
+  .nav-link.active {
+    background-color: #4a90e2 !important;
+    color: white !important;
+  }
+}
