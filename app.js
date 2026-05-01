@@ -14,29 +14,27 @@
   
   console.log('Supabase loaded, initializing...');
   
-  // Get Supabase credentials - works on both local and Vercel
+  // Get Supabase credentials
   let SUPABASE_URL = null;
   let SUPABASE_ANON_KEY = null;
   
-  // Try to get from Vercel environment variables first
-  if (typeof process !== 'undefined' && process.env) {
-    SUPABASE_URL = process.env.VITE_SUPABASE_URL;
-    SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY;
-  }
+  // For Vercel: The environment variables are injected at build time
+  // We need to use a different approach - hardcode or use a config endpoint
+  // Since this is client-side JS, we'll use a simple approach:
   
-  // Fallback to local config.js (for development)
-  if ((!SUPABASE_URL || !SUPABASE_ANON_KEY) && typeof window.SUPABASE_CONFIG !== 'undefined') {
+  // Check for window.SUPABASE_CONFIG (from config.js - local development)
+  if (typeof window.SUPABASE_CONFIG !== 'undefined') {
     SUPABASE_URL = window.SUPABASE_CONFIG.URL;
     SUPABASE_ANON_KEY = window.SUPABASE_CONFIG.ANON_KEY;
     console.log('Using credentials from config.js');
   }
   
-  // If still no credentials, show error
+  // For Vercel production, we'll use hardcoded values (these are safe as anon keys)
+  // These are your actual Supabase credentials
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-    console.error('❌ Supabase credentials missing!');
-    console.error('For local development: create config.js file');
-    console.error('For Vercel: add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables');
-    return;
+    SUPABASE_URL = 'https://vufsqvwjtzadabcsiydv.supabase.co';
+    SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ1ZnNxdndqdHphZGFiY3NpeWR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2MTY4OTgsImV4cCI6MjA5MzE5Mjg5OH0.ozHFxSVjczRjiT9Jt61p5CcBr6xAaC_OeWzoRhyFC2U';
+    console.log('Using hardcoded credentials for production');
   }
 
   // Create Supabase client
