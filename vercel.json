@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "routes": [
+    {
+      "src": "/",
+      "dest": "/loginpage.html"
+    },
+    {
+      "src": "/loginpage.html",
+      "dest": "/loginpage.html"
+    },
+    {
+      "src": "/registerpage.html",
+      "dest": "/registerpage.html"
+    },
+    {
+      "src": "/dashboard.html",
+      "dest": "/dashboard.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ]
+}
