@@ -2,18 +2,28 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <title>CubeBot — Dashboard</title>
+  
+  <!-- Favicon for browser tab -->
+  <link rel="icon" type="image/png" sizes="32x32" href="icon.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="icon.png" />
+  <link rel="shortcut icon" type="image/png" href="icon.png" />
+  
   <link rel="stylesheet" href="dashboardstyle.css" />
 </head>
 <body>
 
   <div id="dashboard">
 
-    <!-- ── SIDEBAR ── -->
+    <!-- SIDEBAR -->
     <aside id="sidebar">
 
       <div id="sidebar-top">
+        <!-- CubeBot Logo above username -->
+        <div class="sidebar-logo">
+          <img src="icon.png" alt="CubeBot Logo" class="cubebot-logo" />
+        </div>
         <h2>CubeBot</h2>
         <p id="welcome-user">Hello, <span id="welcome-username">user</span></p>
       </div>
@@ -24,6 +34,7 @@
         <a href="#section-botname"  class="nav-link">Bot Name</a>
         <a href="#section-alarm"    class="nav-link">Alarm</a>
         <a href="#section-account"  class="nav-link">Account</a>
+        <a href="#section-about"    class="nav-link">About</a>
       </nav>
 
       <div id="sidebar-bottom">
@@ -32,7 +43,7 @@
 
     </aside>
 
-    <!-- ── MAIN CONTENT ── -->
+    <!-- MAIN CONTENT -->
     <main id="main-content">
 
       <!-- MODES SECTION -->
@@ -41,8 +52,7 @@
         <p>Send a mode directly to your CubeBot.</p>
 
         <div id="mode-grid">
-          <!-- Mobile Menu Button -->
-          <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+          <button class="mobile-menu-btn" onclick="toggleMobileMenu()">Menu</button>
           <button class="mode-btn" onclick="sendMode(0)">Awake</button>
           <button class="mode-btn" onclick="sendMode(3)">Happy</button>
           <button class="mode-btn" onclick="sendMode(4)">Info</button>
@@ -54,13 +64,43 @@
           <button class="mode-btn" onclick="sendMode(6)">Grumpy</button>
         </div>
 
+        <!-- BEATSYNC SECTION -->
+        <div id="beatsync-section">
+          <h3>BeatSync</h3>
+          <p>Activate the microphone to visualize sound and music. CubeBot will dance to the beat!</p>
+          
+          <div class="beatsync-control">
+            <button id="beatsync-toggle" class="mode-btn beatsync-btn" onclick="toggleBeatSync()">
+              Activate BeatSync
+            </button>
+          </div>
+          
+          <div id="beatsync-visualizer-container" style="display: none;">
+            <div id="beatsync-visualizer">
+              <div class="wave-bars">
+                <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+                <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+                <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+              </div>
+              <div class="sound-levels">
+                <span>Quiet</span>
+                <span id="sound-level">0%</span>
+                <span>Loud</span>
+              </div>
+              <p class="sound-note">CubeBot is listening to your music!</p>
+            </div>
+          </div>
+          <p id="beatsync-status"></p>
+        </div>
+
         <p id="mode-feedback"></p>
       </section>
 
       <!-- CONNECT SECTION -->
       <section id="section-connect" class="dashboard-section">
         <h2>Connect to ESP32</h2>
-        <p>Enter the IP address of your CubeBot from the Arduino Serial Monitor.</p>
+        <p>Enter the IP address of your CubeBot.</p>
 
         <div class="field-group">
           <label for="ip-input">ESP32 IP Address</label>
@@ -69,6 +109,21 @@
         </div>
 
         <p id="connect-status"></p>
+
+        <div id="bot-status">
+          <div class="status-row">
+            <span class="status-label">Name</span>
+            <span id="status-bot-name">—</span>
+          </div>
+          <div class="status-row">
+            <span class="status-label">Current Mode</span>
+            <span id="status-bot-mode">—</span>
+          </div>
+          <div class="status-row">
+            <span class="status-label">IP</span>
+            <span id="status-bot-ip">—</span>
+          </div>
+        </div>
       </section>
 
       <!-- BOT NAME SECTION -->
@@ -87,40 +142,85 @@
 
       <!-- ALARM SECTION -->
       <section id="section-alarm" class="dashboard-section">
-        <h2>Alarm</h2>
-        <p>Set a clock alarm or start a Pomodoro countdown timer.</p>
+        <h2>Alarm Manager</h2>
+        <p>Set multiple clock alarms. CubeBot will show a flashing ALARM! screen and buzz at the set time.</p>
 
-        <!-- Clock Alarm -->
-        <div class="alarm-block">
-          <h3>Clock Alarm</h3>
-          <p>Pick a time and the page will alert you when it arrives.</p>
-
-          <div class="field-group">
-            <label for="alarm-time">Set Alarm Time</label>
-            <input type="time" id="alarm-time" />
-            <button onclick="setAlarm()">Set Alarm</button>
-            <button onclick="cancelAlarm()">Cancel</button>
+        <!-- Multiple Alarms Container - Grid Layout -->
+        <div id="alarms-container" class="alarms-grid">
+          <div class="alarm-card" data-alarm-id="0">
+            <div class="alarm-card-header">
+              <h3>Alarm #1</h3>
+              <button class="delete-alarm-btn" onclick="deleteAlarm(0)" title="Delete Alarm">✕</button>
+            </div>
+            <div class="alarm-card-body">
+              <div class="alarm-time-field">
+                <label>Time</label>
+                <input type="time" class="alarm-time" value="07:00" />
+              </div>
+              <div class="alarm-name-field">
+                <label>Name</label>
+                <input type="text" class="alarm-name" placeholder="Wake up!" maxlength="25" />
+              </div>
+              <div class="alarm-countdown">
+                <label>Countdown</label>
+                <span class="countdown-display">--:--:--</span>
+              </div>
+              <div class="alarm-actions">
+                <button class="set-alarm-btn" onclick="setAlarmFromCard(this)">Set</button>
+                <button class="cancel-alarm-btn" onclick="cancelAlarmFromCard(this)">Cancel</button>
+              </div>
+              <p class="alarm-status-message"></p>
+            </div>
           </div>
-
-          <p id="alarm-status"></p>
         </div>
 
-        <hr />
+        <!-- Add Alarm Button -->
+        <div class="add-alarm-container">
+          <button id="add-alarm-btn" onclick="addNewAlarmCard()">+ Add Alarm</button>
+        </div>
 
-        <!-- Pomodoro Timer -->
-        <div class="alarm-block">
+        <!-- Active Alarms List -->
+        <div class="active-alarms-panel">
+          <h4>Active Alarms</h4>
+          <div id="active-alarms-list" class="active-alarms-list">
+            <p class="no-alarms">No active alarms</p>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- POMODORO TIMER WITH CYCLES -->
+        <div class="pomodoro-wrapper">
           <h3>Pomodoro Timer</h3>
-          <p>Focus for 25 minutes, then take a 5 minute break.</p>
+          <p>Continuous work/break cycles. Touch the bot or click Stop to interrupt.</p>
 
-          <div class="field-group">
-            <label for="pomo-minutes">Duration (minutes)</label>
-            <input type="number" id="pomo-minutes" value="25" min="1" max="120" />
-            <button onclick="startPomodoro()">Start</button>
-            <button onclick="resetPomodoro()">Reset</button>
+          <div class="pomodoro-form">
+            <div class="pomodoro-input-group">
+              <label for="pomo-minutes">Work Duration (minutes)</label>
+              <input type="number" id="pomo-minutes" value="25" min="1" max="120" step="1" />
+            </div>
+            
+            <div class="pomodoro-input-group">
+              <label for="break-minutes">Break Duration (minutes)</label>
+              <input type="number" id="break-minutes" value="5" min="1" max="60" step="1" />
+            </div>
+
+            <div class="pomodoro-input-group">
+              <label for="cycle-count">Number of Cycles (1-10)</label>
+              <input type="number" id="cycle-count" value="4" min="1" max="10" step="1" />
+            </div>
+            
+            <div class="pomodoro-buttons">
+              <button class="pomodoro-start" onclick="startPomodoro()">Start Timer</button>
+              <button class="pomodoro-stop" onclick="stopPomodoro()">Stop Timer</button>
+              <button class="pomodoro-reset" onclick="resetPomodoro()">Reset Timer</button>
+            </div>
           </div>
 
           <div id="pomo-display">
+            <div id="pomo-status-badge" class="pomo-status-badge">Work Time</div>
             <span id="pomo-time">25:00</span>
+            <div id="cycle-counter" class="cycle-counter">Cycle: 0 / 4</div>
           </div>
 
           <p id="pomo-status"></p>
@@ -133,17 +233,137 @@
         <p>Your account information.</p>
 
         <div id="account-info">
-          <div class="account-row">
-            <span class="account-label">Username</span>
+          <div class="info-row">
+            <span class="info-label">Username</span>
             <span id="account-username">—</span>
           </div>
-          <div class="account-row">
-            <span class="account-label">Email</span>
+          <div class="info-row">
+            <span class="info-label">Email</span>
             <span id="account-email">—</span>
           </div>
         </div>
 
         <button id="logout-btn-main" onclick="logout()">Logout</button>
+      </section>
+
+      <!-- ABOUT SECTION -->
+      <section id="section-about" class="dashboard-section">
+        <h2>About CubeBot</h2>
+        <p>Information about your CubeBot companion.</p>
+
+        <!-- About Cards Grid -->
+        <div class="about-grid">
+          
+          <!-- CubeBot Info Card -->
+          <div class="about-card">
+            <div class="about-icon">
+              <img src="icon.png" alt="CubeBot Logo" class="about-logo" />
+            </div>
+            <h3>CubeBot</h3>
+            <p class="version">Version 1.0.0</p>
+            <p class="description">Your smart robotic companion with expressive animations, sound visualization, and productivity tools.</p>
+          </div>
+
+          <!-- Features Card -->
+          <div class="about-card">
+            <div class="about-icon">⚡</div>
+            <h3>Features</h3>
+            <ul class="features-list">
+              <li>🎭 10+ Animated Expressions</li>
+              <li>🎵 BeatSync Audio Visualization</li>
+              <li>⏰ Multiple Alarms Support</li>
+              <li>🍅 Pomodoro Timer with Cycles</li>
+              <li>🌤️ Live Weather Display</li>
+              <li>🎮 Remote Mode Control</li>
+              <li>📱 Web Dashboard Control</li>
+            </ul>
+          </div>
+
+          <!-- Technical Info Card -->
+          <div class="about-card">
+            <div class="about-icon">🔧</div>
+            <h3>Technical Info</h3>
+            <div class="tech-info">
+              <div class="tech-item">
+                <span class="tech-label">Microcontroller:</span>
+                <span class="tech-value">ESP32-C3 Super Mini</span>
+              </div>
+              <div class="tech-item">
+                <span class="tech-label">Display:</span>
+                <span class="tech-value">1.3" OLED (SH1106)</span>
+              </div>
+              <div class="tech-item">
+                <span class="tech-label">Sensors:</span>
+                <span class="tech-value">Touch, Microphone</span>
+              </div>
+              <div class="tech-item">
+                <span class="tech-label">Connectivity:</span>
+                <span class="tech-value">WiFi 802.11 b/g/n</span>
+              </div>
+              <div class="tech-item">
+                <span class="tech-label">Framework:</span>
+                <span class="tech-value">Arduino</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Support & Contact Card with Original Logos -->
+          <div class="about-card">
+            <div class="about-icon">📞</div>
+            <h3>Support & Contact</h3>
+            <div class="contact-info">
+              <!-- Gmail with original logo -->
+              <div class="contact-item">
+                <div class="contact-icon gmail-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6Z" fill="#EA4335"/>
+                    <path d="M22 6L12 13L2 6H22Z" fill="#F5F5F5" fill-opacity="0.3"/>
+                    <path d="M22 6L12 13L2 6" stroke="#F5F5F5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M15 11L22 17" stroke="#F5F5F5" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M9 11L2 17" stroke="#F5F5F5" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M16 18L22 22" stroke="#F5F5F5" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M8 18L2 22" stroke="#F5F5F5" stroke-width="1.5" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <span class="contact-text">cigitechsupport@gmail.com</span>
+              </div>
+              
+              <!-- Website with original globe logo -->
+              <div class="contact-item">
+                <div class="contact-icon website-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" stroke="#4a90e2" stroke-width="1.5" fill="none"/>
+                    <path d="M12 2C10 4 8 6 8 12C8 18 10 20 12 22" stroke="#4a90e2" stroke-width="1.5" fill="none"/>
+                    <path d="M12 2C14 4 16 6 16 12C16 18 14 20 12 22" stroke="#4a90e2" stroke-width="1.5" fill="none"/>
+                    <ellipse cx="12" cy="12" rx="3" ry="10" stroke="#4a90e2" stroke-width="1.5" fill="none"/>
+                    <line x1="2" y1="8" x2="22" y2="8" stroke="#4a90e2" stroke-width="1.5"/>
+                    <line x1="2" y1="16" x2="22" y2="16" stroke="#4a90e2" stroke-width="1.5"/>
+                  </svg>
+                </div>
+                <span class="contact-text">cubebot-cigitech.vercel.app</span>
+              </div>
+              
+              <!-- GitHub with original logo -->
+              <div class="contact-item">
+                <div class="contact-icon github-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C6.48 2 2 6.48 2 12C2 16.42 4.87 20.17 8.84 21.5C9.34 21.58 9.5 21.27 9.5 21C9.5 20.76 9.49 20.01 9.49 19.22C7 19.75 6.29 18.41 6.06 17.74C5.96 17.46 5.42 16.36 4.9 16.06C4.47 15.82 4.88 15.77 5.09 15.81C5.61 15.92 6.19 16.89 6.36 17.25C6.77 18.09 7.46 18.43 8.13 18.31C8.22 17.82 8.47 17.47 8.74 17.28C6.93 17.09 5.06 16.31 5.06 12.92C5.06 11.64 5.5 10.6 6.24 9.79C6.13 9.59 5.74 8.4 6.38 6.88C6.38 6.88 7.14 6.66 8.86 8.08C9.56 7.9 10.3 7.81 11.03 7.81C11.76 7.81 12.5 7.9 13.2 8.08C14.92 6.66 15.68 6.88 15.68 6.88C16.32 8.4 15.93 9.59 15.82 9.79C16.56 10.6 16.99 11.64 16.99 12.92C16.99 16.34 15.1 17.08 13.27 17.27C13.61 17.55 13.9 18.1 13.9 18.92C13.9 20.1 13.88 21.04 13.88 21.04C13.88 21.32 14.05 21.63 14.56 21.54C18.54 20.2 21.42 16.45 21.42 12.04C21.42 6.52 16.94 2.04 11.42 2.04L12 2Z" fill="#333333"/>
+                    <path d="M8.84 21.5C8.34 21.58 8.18 21.27 8.18 21C8.18 20.76 8.17 20.01 8.17 19.22C5.67 19.75 5.06 18.41 4.83 17.74" stroke="#333333" stroke-width="1.2" fill="none"/>
+                  </svg>
+                </div>
+                <span class="contact-text">github.com/trulynotLuci/Cubebot</span>
+              </div>
+            </div>
+            <button class="report-btn" onclick="window.location.href='mailto:cigitechsupport@gmail.com'">Report Issue</button>
+          </div>
+
+        </div>
+
+        <!-- Footer Note -->
+        <div class="about-footer">
+          <p>Made for Tech enthusiasts</p>
+          <p class="copyright">© 2026 CubeBot Project. All rights reserved.</p>
+        </div>
       </section>
 
     </main>
