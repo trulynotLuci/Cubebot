@@ -1,7 +1,6 @@
 // =============================================
 //  CUBEBOT — dashboard.js
-//  FIXED: Continuous Pomodoro updates to ESP32
-//  Shows correct countdown on both web and ESP32 LCD
+//  ESP32 and Web count independently in sync
 // =============================================
 
 // Wait for Supabase
@@ -300,7 +299,7 @@ function sendBotName() {
 }
 
 // =============================================
-//  POMODORO WITH CONTINUOUS ESP32 UPDATES
+//  POMODORO
 // =============================================
 
 let pomodoroInterval = null;
@@ -309,8 +308,6 @@ let pomodoroStartTime = 0;
 let pomodoroRemaining = 0;
 let currentWorkDuration = 25;
 let currentBreakDuration = 5;
-let totalCycles = 4;
-let currentCycle = 0;
 let pomodoroActive = false;
 let lastSentRemaining = -1;
 
@@ -322,44 +319,36 @@ function startPomodoro() {
   
   pomodoroActive = true;
   isBreakTime = false;
-  currentCycle = 0;
   lastSentRemaining = -1;
   
   currentWorkDuration = parseInt(document.getElementById('pomo-minutes')?.value) || 25;
   currentBreakDuration = parseInt(document.getElementById('break-minutes')?.value) || 5;
-  totalCycles = parseInt(document.getElementById('cycle-count')?.value) || 4;
   
-  // Start first work session
   startWorkSession();
 }
 
 function startWorkSession() {
   isBreakTime = false;
-  currentCycle++;
   
   pomodoroRemaining = currentWorkDuration * 60;
   pomodoroStartTime = Date.now();
   
   updatePomoDisplay(pomodoroRemaining, false);
-  setFeedback('pomo-status', `🍅 Work session #${currentCycle}/${totalCycles} started! ${currentWorkDuration} minutes focus time.`, '#38a169');
+  setFeedback('pomo-status', `🍅 Work session started! ${currentWorkDuration} minutes focus time.`, '#38a169');
   
-  // Send initial work timer to ESP32
   updateESP32Timer(pomodoroRemaining, false);
   
-  // Update UI
   const pomoDisplay = document.getElementById('pomo-display');
   const pomoBadge = document.getElementById('pomo-status-badge');
   const pomoTime = document.getElementById('pomo-time');
-  const cycleCounter = document.getElementById('cycle-counter');
+  
   if (pomoDisplay) pomoDisplay.classList.remove('break-mode');
   if (pomoBadge) {
     pomoBadge.textContent = 'Work Time';
     pomoBadge.classList.remove('break');
   }
   if (pomoTime) pomoTime.classList.remove('break');
-  if (cycleCounter) cycleCounter.textContent = `Cycle: ${currentCycle} / ${totalCycles}`;
   
-  // Start countdown
   if (pomodoroInterval) clearInterval(pomodoroInterval);
   pomodoroInterval = setInterval(updatePomodoroCountdown, 1000);
 }
@@ -372,16 +361,10 @@ function startBreakSession() {
   
   updatePomoDisplay(pomodoroRemaining, true);
   
-  if (currentCycle >= totalCycles) {
-    setFeedback('pomo-status', `🎉 All ${totalCycles} cycles complete! Great job! Take a long break! 🎉`, '#38a169');
-  } else {
-    setFeedback('pomo-status', `☕ Break time! ${currentBreakDuration} minutes rest. Work session #${currentCycle + 1} coming up.`, '#e53e3e');
-  }
+  setFeedback('pomo-status', `☕ Break time! ${currentBreakDuration} minutes rest.`, '#e53e3e');
   
-  // Send break timer to ESP32
   updateESP32Timer(pomodoroRemaining, true);
   
-  // Update UI for break mode
   const pomoDisplay = document.getElementById('pomo-display');
   const pomoBadge = document.getElementById('pomo-status-badge');
   const pomoTime = document.getElementById('pomo-time');
@@ -392,10 +375,8 @@ function startBreakSession() {
   }
   if (pomoTime) pomoTime.classList.add('break');
   
-  // Buzz to notify break
   sendToESP32('/buzz', null, null);
   
-  // Start countdown
   if (pomodoroInterval) clearInterval(pomodoroInterval);
   pomodoroInterval = setInterval(updatePomodoroCountdown, 1000);
 }
@@ -409,25 +390,17 @@ function updatePomodoroCountdown() {
   
   if (remaining <= 0) {
     if (!isBreakTime) {
-      // Work session ended - start break
-      if (currentCycle >= totalCycles) {
-        completePomodoro();
-      } else {
-        startBreakSession();
-      }
+      startBreakSession();
     } else {
-      // Break session ended - start next work cycle
-      startWorkSession();
+      completePomodoro();
     }
   } else {
     updatePomoDisplay(remaining, isBreakTime);
-    // Send update to ESP32 every second
     updateESP32Timer(remaining, isBreakTime);
   }
 }
 
 function updateESP32Timer(remainingSeconds, isBreak) {
-  // Only send if value changed to reduce network traffic
   if (remainingSeconds === lastSentRemaining) return;
   lastSentRemaining = remainingSeconds;
   
@@ -436,14 +409,10 @@ function updateESP32Timer(remainingSeconds, isBreak) {
   const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   
   if (isBreak) {
-    // Send break time to ESP32 using alarm with custom message
     const breakMsg = `BREAK ${timeStr}`;
     sendToESP32(`/setAlarm?time=${remainingSeconds * 1000}&message=${encodeURIComponent(breakMsg)}`, null, null);
-    // Also set mode to show break face
-    sendToESP32(`/setMode?m=8`, null, null); // Fortune/Happy mode for break
+    sendToESP32(`/setMode?m=8`, null, null); 
   } else {
-    // Send work timer update to ESP32
-    // Use the existing setPomodoro endpoint with the remaining minutes
     const remainingMinutes = Math.ceil(remainingSeconds / 60);
     sendToESP32(`/setPomodoro?minutes=${remainingMinutes}`, null, null);
   }
@@ -479,24 +448,20 @@ function completePomodoro() {
   pomodoroActive = false;
   lastSentRemaining = -1;
   
-  setFeedback('pomo-status', `🎉 CONGRATULATIONS! You completed ${totalCycles} Pomodoro cycles! 🎉`, '#38a169');
+  setFeedback('pomo-status', `🎉 CONGRATULATIONS! Pomodoro session complete! 🎉`, '#38a169');
   
-  // Send completion to ESP32 - show happy face
-  sendToESP32('/setMode?m=3', null, null); // Happy mode
+  sendToESP32('/setMode?m=3', null, null); 
   sendToESP32('/resetPomodoro', null, null);
   
-  // Update UI
   const pomoDisplay = document.getElementById('pomo-display');
   const pomoBadge = document.getElementById('pomo-status-badge');
-  const cycleCounter = document.getElementById('cycle-counter');
+  
   if (pomoDisplay) pomoDisplay.classList.remove('break-mode');
   if (pomoBadge) {
     pomoBadge.textContent = 'Complete!';
     pomoBadge.classList.remove('break');
   }
-  if (cycleCounter) cycleCounter.textContent = `Complete! 🎉`;
   
-  // Buzz celebration
   sendToESP32('/buzz', null, null);
 }
 
@@ -519,7 +484,7 @@ function stopPomodoro() {
   const pomoDisplay = document.getElementById('pomo-display');
   const pomoBadge = document.getElementById('pomo-status-badge');
   const pomoTime = document.getElementById('pomo-time');
-  const cycleCounter = document.getElementById('cycle-counter');
+  
   if (pomoDisplay) pomoDisplay.classList.remove('break-mode');
   if (pomoBadge) {
     pomoBadge.textContent = 'Stopped';
@@ -530,7 +495,6 @@ function stopPomodoro() {
     pomoTime.classList.remove('break');
     pomoTime.style.color = '#ffffff';
   }
-  if (cycleCounter) cycleCounter.textContent = `Cycle: 0 / ${totalCycles}`;
 }
 
 function resetPomodoro() {
@@ -541,10 +505,8 @@ function resetPomodoro() {
   
   pomodoroActive = false;
   isBreakTime = false;
-  currentCycle = 0;
   lastSentRemaining = -1;
   currentWorkDuration = parseInt(document.getElementById('pomo-minutes')?.value) || 25;
-  totalCycles = parseInt(document.getElementById('cycle-count')?.value) || 4;
   
   const mins = currentWorkDuration;
   const display = document.getElementById('pomo-time');
@@ -556,13 +518,12 @@ function resetPomodoro() {
   
   const pomoDisplay = document.getElementById('pomo-display');
   const pomoBadge = document.getElementById('pomo-status-badge');
-  const cycleCounter = document.getElementById('cycle-counter');
+  
   if (pomoDisplay) pomoDisplay.classList.remove('break-mode');
   if (pomoBadge) {
     pomoBadge.textContent = 'Work Time';
     pomoBadge.classList.remove('break');
   }
-  if (cycleCounter) cycleCounter.textContent = `Cycle: 0 / ${totalCycles}`;
   
   sendToESP32('/resetPomodoro', null, null);
   sendToESP32('/setMode?m=0', null, null);

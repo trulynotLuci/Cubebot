@@ -3,7 +3,7 @@
    Complete CSS with:
    - BeatSync Audio Visualization
    - Multiple Alarms Grid Layout
-   - Continuous Pomodoro Cycles
+   - Single Pomodoro Support
    - Break Time Display Support
    - About Section with Cards
    - Circular Logo Styles
@@ -609,7 +609,7 @@ html {
   margin: 24px 0;
 }
 
-/* --- POMODORO TIMER WITH CYCLES --- */
+/* --- POMODORO TIMER --- */
 .pomodoro-wrapper {
   margin-top: 10px;
 }
@@ -759,15 +759,6 @@ html {
 
 #pomo-time.break {
   color: #e53e3e;
-}
-
-.cycle-counter {
-  font-size: 11px;
-  color: #888;
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid #333;
-  font-weight: 500;
 }
 
 #pomo-status {
@@ -1262,10 +1253,6 @@ input:focus,
   
   .active-alarms-panel {
     padding: 12px;
-  }
-  
-  .cycle-counter {
-    font-size: 10px;
   }
   
   /* About Section Mobile */
