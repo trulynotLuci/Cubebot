@@ -419,6 +419,7 @@ html {
 }
 
 .alarm-time-field,
+.alarm-date-field,
 .alarm-name-field,
 .alarm-countdown {
   display: flex;
@@ -427,6 +428,7 @@ html {
 }
 
 .alarm-time-field label,
+.alarm-date-field label,
 .alarm-name-field label,
 .alarm-countdown label {
   font-size: 11px;
@@ -437,6 +439,7 @@ html {
 }
 
 .alarm-time-field input,
+.alarm-date-field input,
 .alarm-name-field input {
   padding: 8px 10px;
   font-size: 13px;
@@ -447,6 +450,7 @@ html {
 }
 
 .alarm-time-field input:focus,
+.alarm-date-field input:focus,
 .alarm-name-field input:focus {
   border-color: #4a90e2;
 }

@@ -1,9 +1,7 @@
 // =============================================
 //  CUBEBOT — dashboard.js
-//  ESP32 and Web count independently in sync
 // =============================================
 
-// Wait for Supabase
 (function waitForSupabase() {
   if (typeof window.supabaseClient === 'undefined') {
     setTimeout(waitForSupabase, 100);
@@ -106,7 +104,6 @@ function testConnection() {
   );
 }
 
-// BeatSync - Audio Visualization
 let soundMonitorInterval = null;
 
 function startSoundMonitor() {
@@ -116,25 +113,20 @@ function startSoundMonitor() {
 
 function fetchSoundLevel() {
   if (!getSavedIP()) return;
-  
   sendToESP32('/mic',
     function (response) {
       try {
         const data = JSON.parse(response);
         updateSoundVisualizer(data.level, data.max || 4095);
       } catch (e) { }
-    },
-    null
-  );
+    }, null);
 }
 
 function updateSoundVisualizer(level, maxLevel) {
   const visualizer = document.getElementById('beatsync-visualizer');
   const levelText = document.getElementById('sound-level');
   const waveBars = document.querySelectorAll('.wave-bar');
-  
   if (!visualizer) return;
-  
   const percentage = (level / maxLevel) * 100;
   const normalizedLevel = Math.min(100, Math.max(0, percentage));
   
@@ -151,7 +143,6 @@ function updateSoundVisualizer(level, maxLevel) {
       bar.style.backgroundColor = getSoundColor(normalizedLevel);
     });
   }
-  
   const intensity = normalizedLevel / 100;
   visualizer.style.opacity = 0.3 + (intensity * 0.5);
 }
@@ -166,7 +157,6 @@ function getSoundColor(percentage) {
 function toggleBeatSync() {
   const btn = document.getElementById('beatsync-toggle');
   const isActive = btn?.classList.contains('active');
-  
   if (isActive) {
     sendMode(0);
     btn.classList.remove('active');
@@ -181,9 +171,7 @@ function toggleBeatSync() {
         setFeedback('beatsync-status', 'BeatSync activated! CubeBot is listening to music!', '#38a169');
         startBeatSyncVisualizer();
       },
-      function (msg) { 
-        setFeedback('beatsync-status', `Failed to activate: ${msg}`, '#e53e3e');
-      }
+      function (msg) { setFeedback('beatsync-status', `Failed to activate: ${msg}`, '#e53e3e'); }
     );
   }
 }
@@ -205,7 +193,6 @@ function stopBeatSyncVisualizer() {
   if (levelText) levelText.textContent = '0%';
 }
 
-// Status Poll
 let statusInterval = null;
 
 function startStatusPoll() {
@@ -232,19 +219,11 @@ function pollStatus() {
           beatsyncBtn.textContent = 'Activate BeatSync';
           stopBeatSyncVisualizer();
         }
-        
-      } catch (e) { 
-        console.log('Parse error:', e);
-      }
-    },
-    null
-  );
+      } catch (e) {}
+    }, null);
 }
 
-// Monitor for touch events from ESP32
-function startTouchMonitor() {
-  setInterval(checkTouchStatus, 1000);
-}
+function startTouchMonitor() { setInterval(checkTouchStatus, 1000); }
 
 function checkTouchStatus() {
   sendToESP32('/status',
@@ -252,15 +231,13 @@ function checkTouchStatus() {
       try {
         const data = JSON.parse(response);
         if (pomodoroActive && data.mode !== 11 && data.mode !== 17 && data.mode !== 0) {
-          if (data.mode === 13) { // ALARM_RINGING_MODE
+          if (data.mode === 13) { 
             stopPomodoro();
             setFeedback('pomo-status', '⏸️ Timer interrupted by touch on robot!', '#e53e3e');
           }
         }
       } catch (e) { }
-    },
-    null
-  );
+    }, null);
 }
 
 const MODE_LABELS = {
@@ -269,7 +246,7 @@ const MODE_LABELS = {
   11: 'Pomodoro', 12: 'Weather', 13: 'Alarm Ringing',
   14: 'Confirmation', 15: 'Time & Weather',
   16: 'Alarm Countdown', 17: 'Pomodoro Countdown',
-  18: 'BeatSync'
+  18: 'BeatSync', 21: 'Task Reminder'
 };
 function getModeLabel(id) { return MODE_LABELS[id] || `Mode ${id}`; }
 
@@ -291,7 +268,7 @@ function sendBotName() {
   setFeedback('botname-feedback', 'Sending name...', '#4299e1');
   sendToESP32(`/setName?n=${encodeURIComponent(name)}`,
     function () {
-      setFeedback('botname-feedback', `Name "${name}" saved to CubeBot!`, '#38a169');
+      setFeedback('botname-feedback', `Name "${name}" saved!`, '#38a169');
       setTimeout(() => setFeedback('botname-feedback', ''), 2500);
     },
     function (msg) { setFeedback('botname-feedback', `Failed: ${msg}`, '#e53e3e'); }
@@ -301,7 +278,6 @@ function sendBotName() {
 // =============================================
 //  POMODORO
 // =============================================
-
 let pomodoroInterval = null;
 let isBreakTime = false;
 let pomodoroStartTime = 0;
@@ -312,88 +288,61 @@ let pomodoroActive = false;
 let lastSyncState = "";
 
 function startPomodoro() {
-  if (pomodoroInterval) {
-    clearInterval(pomodoroInterval);
-    pomodoroInterval = null;
-  }
-  
+  if (pomodoroInterval) { clearInterval(pomodoroInterval); pomodoroInterval = null; }
   pomodoroActive = true;
   isBreakTime = false;
   lastSyncState = "";
-  
   currentWorkDuration = parseInt(document.getElementById('pomo-minutes')?.value) || 25;
   currentBreakDuration = parseInt(document.getElementById('break-minutes')?.value) || 5;
-  
   startWorkSession();
 }
 
 function startWorkSession() {
   isBreakTime = false;
-  
   pomodoroRemaining = currentWorkDuration * 60;
   pomodoroStartTime = Date.now();
-  
   updatePomoDisplay(pomodoroRemaining, false);
-  setFeedback('pomo-status', `🍅 Work session started! ${currentWorkDuration} minutes focus time.`, '#38a169');
-  
+  setFeedback('pomo-status', `🍅 Work session started! ${currentWorkDuration} mins.`, '#38a169');
   updateESP32Timer(pomodoroRemaining, false);
   
   const pomoDisplay = document.getElementById('pomo-display');
   const pomoBadge = document.getElementById('pomo-status-badge');
   const pomoTime = document.getElementById('pomo-time');
-  
   if (pomoDisplay) pomoDisplay.classList.remove('break-mode');
-  if (pomoBadge) {
-    pomoBadge.textContent = 'Work Time';
-    pomoBadge.classList.remove('break');
-  }
+  if (pomoBadge) { pomoBadge.textContent = 'Work Time'; pomoBadge.classList.remove('break'); }
   if (pomoTime) pomoTime.classList.remove('break');
-  
   if (pomodoroInterval) clearInterval(pomodoroInterval);
   pomodoroInterval = setInterval(updatePomodoroCountdown, 1000);
 }
 
 function startBreakSession() {
   isBreakTime = true;
-  
   pomodoroRemaining = currentBreakDuration * 60;
   pomodoroStartTime = Date.now();
-  
   updatePomoDisplay(pomodoroRemaining, true);
-  
-  setFeedback('pomo-status', `☕ Break time! ${currentBreakDuration} minutes rest.`, '#e53e3e');
-  
+  setFeedback('pomo-status', `☕ Break time! ${currentBreakDuration} mins rest.`, '#e53e3e');
   updateESP32Timer(pomodoroRemaining, true);
   
   const pomoDisplay = document.getElementById('pomo-display');
   const pomoBadge = document.getElementById('pomo-status-badge');
   const pomoTime = document.getElementById('pomo-time');
   if (pomoDisplay) pomoDisplay.classList.add('break-mode');
-  if (pomoBadge) {
-    pomoBadge.textContent = 'Break Time';
-    pomoBadge.classList.add('break');
-  }
+  if (pomoBadge) { pomoBadge.textContent = 'Break Time'; pomoBadge.classList.add('break'); }
   if (pomoTime) pomoTime.classList.add('break');
   
   sendToESP32('/buzz', null, null);
-  
   if (pomodoroInterval) clearInterval(pomodoroInterval);
   pomodoroInterval = setInterval(updatePomodoroCountdown, 1000);
 }
 
 function updatePomodoroCountdown() {
   if (!pomodoroActive) return;
-  
   const now = Date.now();
   const elapsed = Math.floor((now - pomodoroStartTime) / 1000);
   let remaining = pomodoroRemaining - elapsed;
-  
   if (remaining <= 0) {
-    if (!isBreakTime) {
-      startBreakSession();
-    } else {
-      completePomodoro();
-    }
+    if (!isBreakTime) startBreakSession();
+    else completePomodoro();
   } else {
     updatePomoDisplay(remaining, isBreakTime);
     updateESP32Timer(remaining, isBreakTime);
@@ -404,11 +353,8 @@ function updateESP32Timer(remainingSeconds, isBreak) {
   const currentState = isBreak ? "break" : "work";
   if (lastSyncState === currentState) return; 
   lastSyncState = currentState;
-  
   if (!isBreak) {
     sendToESP32(`/setPomodoro?minutes=${currentWorkDuration}&breakMins=${currentBreakDuration}`, null, null);
-  } else {
-    // Let the ESP32 handle the break transition natively
   }
 }
 
@@ -418,72 +364,43 @@ function updatePomoDisplay(remainingSeconds, isBreak) {
   const display = document.getElementById('pomo-time');
   if (display) {
     display.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-    
-    if (isBreak) {
-      display.style.color = '#e53e3e';
-    } else {
-      if (remainingSeconds < 60) {
-        display.style.color = '#e53e3e';
-      } else if (remainingSeconds < 300) {
-        display.style.color = '#ed8936';
-      } else {
-        display.style.color = '#ffffff';
-      }
-    }
+    if (isBreak) display.style.color = '#e53e3e';
+    else if (remainingSeconds < 60) display.style.color = '#e53e3e';
+    else if (remainingSeconds < 300) display.style.color = '#ed8936';
+    else display.style.color = '#ffffff';
   }
 }
 
 function completePomodoro() {
-  if (pomodoroInterval) {
-    clearInterval(pomodoroInterval);
-    pomodoroInterval = null;
-  }
-  
+  if (pomodoroInterval) { clearInterval(pomodoroInterval); pomodoroInterval = null; }
   pomodoroActive = false;
   lastSyncState = "";
-  
-  setFeedback('pomo-status', `🎉 CONGRATULATIONS! Pomodoro session complete! 🎉`, '#38a169');
-  
+  setFeedback('pomo-status', `🎉 CONGRATULATIONS! Session complete! 🎉`, '#38a169');
   sendToESP32('/setMode?m=3', null, null); 
   sendToESP32('/resetPomodoro', null, null);
   
   const pomoDisplay = document.getElementById('pomo-display');
   const pomoBadge = document.getElementById('pomo-status-badge');
-  
   if (pomoDisplay) pomoDisplay.classList.remove('break-mode');
-  if (pomoBadge) {
-    pomoBadge.textContent = 'Complete!';
-    pomoBadge.classList.remove('break');
-  }
-  
+  if (pomoBadge) { pomoBadge.textContent = 'Complete!'; pomoBadge.classList.remove('break'); }
   sendToESP32('/buzz', null, null);
 }
 
 function stopPomodoro() {
-  if (pomodoroInterval) {
-    clearInterval(pomodoroInterval);
-    pomodoroInterval = null;
-  }
-  
+  if (pomodoroInterval) { clearInterval(pomodoroInterval); pomodoroInterval = null; }
   pomodoroActive = false;
   isBreakTime = false;
   lastSyncState = "";
-  
   sendToESP32('/setMode?m=0', null, null);
   sendToESP32('/resetPomodoro', null, null);
   sendToESP32('/cancelAlarm', null, null);
-  
   setFeedback('pomo-status', '⏸️ Timer stopped by user.', '#e53e3e');
   
   const pomoDisplay = document.getElementById('pomo-display');
   const pomoBadge = document.getElementById('pomo-status-badge');
   const pomoTime = document.getElementById('pomo-time');
-  
   if (pomoDisplay) pomoDisplay.classList.remove('break-mode');
-  if (pomoBadge) {
-    pomoBadge.textContent = 'Stopped';
-    pomoBadge.classList.remove('break');
-  }
+  if (pomoBadge) { pomoBadge.textContent = 'Stopped'; pomoBadge.classList.remove('break'); }
   if (pomoTime) {
     pomoTime.textContent = `${String(currentWorkDuration).padStart(2, '0')}:00`;
     pomoTime.classList.remove('break');
@@ -492,16 +409,11 @@ function stopPomodoro() {
 }
 
 function resetPomodoro() {
-  if (pomodoroInterval) {
-    clearInterval(pomodoroInterval);
-    pomodoroInterval = null;
-  }
-  
+  if (pomodoroInterval) { clearInterval(pomodoroInterval); pomodoroInterval = null; }
   pomodoroActive = false;
   isBreakTime = false;
   lastSyncState = "";
   currentWorkDuration = parseInt(document.getElementById('pomo-minutes')?.value) || 25;
-  
   const mins = currentWorkDuration;
   const display = document.getElementById('pomo-time');
   if (display) {
@@ -512,29 +424,22 @@ function resetPomodoro() {
   
   const pomoDisplay = document.getElementById('pomo-display');
   const pomoBadge = document.getElementById('pomo-status-badge');
-  
   if (pomoDisplay) pomoDisplay.classList.remove('break-mode');
-  if (pomoBadge) {
-    pomoBadge.textContent = 'Work Time';
-    pomoBadge.classList.remove('break');
-  }
-  
+  if (pomoBadge) { pomoBadge.textContent = 'Work Time'; pomoBadge.classList.remove('break'); }
   sendToESP32('/resetPomodoro', null, null);
   sendToESP32('/setMode?m=0', null, null);
   setFeedback('pomo-status', '🔄 Pomodoro reset.', '#666666');
 }
 
 // =============================================
-//  MULTIPLE INDEPENDENT ALARMS
+//  ALARMS / TASKS
 // =============================================
-
 let nextAlarmId = 1;
 let webAlarms = {};
 
 function addNewAlarmCard() {
   const container = document.getElementById('alarms-container');
   const alarmId = nextAlarmId++;
-  
   const alarmCard = document.createElement('div');
   alarmCard.className = 'alarm-card';
   alarmCard.setAttribute('data-alarm-id', alarmId);
@@ -545,9 +450,13 @@ function addNewAlarmCard() {
       <button class="delete-alarm-btn" onclick="deleteAlarm(${alarmId})" title="Delete Alarm">✕</button>
     </div>
     <div class="alarm-card-body">
+      <div class="alarm-date-field">
+        <label>Date</label>
+        <input type="date" class="alarm-date" />
+      </div>
       <div class="alarm-time-field">
         <label>Time</label>
-        <input type="time" class="alarm-time" value="07:00" />
+        <input type="time" class="alarm-time" />
       </div>
       <div class="alarm-name-field">
         <label>Name</label>
@@ -564,7 +473,6 @@ function addNewAlarmCard() {
       <p class="alarm-status-message"></p>
     </div>
   `;
-  
   container.appendChild(alarmCard);
   alarmCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
@@ -573,68 +481,57 @@ function deleteAlarm(alarmId) {
   const alarmCard = document.querySelector(`.alarm-card[data-alarm-id="${alarmId}"]`);
   if (alarmCard) {
     if (webAlarms[alarmId]) {
-      if (webAlarms[alarmId].timeout) {
-        clearTimeout(webAlarms[alarmId].timeout);
-      }
+      if (webAlarms[alarmId].timeout) clearTimeout(webAlarms[alarmId].timeout);
       delete webAlarms[alarmId];
     }
-    
     alarmCard.style.transition = 'all 0.2s ease';
     alarmCard.style.opacity = '0';
     alarmCard.style.transform = 'scale(0.9)';
-    
-    setTimeout(() => {
-      alarmCard.remove();
-      updateActiveAlarmsList();
-    }, 200);
+    setTimeout(() => { alarmCard.remove(); updateActiveAlarmsList(); }, 200);
   }
 }
 
 function setAlarmFromCard(buttonElement) {
   const alarmCard = buttonElement.closest('.alarm-card');
   const alarmId = parseInt(alarmCard.getAttribute('data-alarm-id'));
+  const dateInput = alarmCard.querySelector('.alarm-date').value;
   const timeInput = alarmCard.querySelector('.alarm-time').value;
   const nameInput = alarmCard.querySelector('.alarm-name').value.trim() || "Time's up!";
   const statusMsg = alarmCard.querySelector('.alarm-status-message');
   
-  if (!timeInput) {
-    statusMsg.textContent = 'Pick a time.';
-    statusMsg.style.color = '#e53e3e';
-    return;
+  if (!dateInput || !timeInput) {
+    statusMsg.textContent = 'Pick a date and time.';
+    statusMsg.style.color = '#e53e3e'; return;
   }
-  
   if (!getSavedIP()) {
     statusMsg.textContent = 'No IP saved.';
-    statusMsg.style.color = '#e53e3e';
-    return;
+    statusMsg.style.color = '#e53e3e'; return;
   }
   
   const now = new Date();
-  const [h, m] = timeInput.split(':').map(Number);
-  const alarmDate = new Date();
-  alarmDate.setHours(h, m, 0, 0);
-  if (alarmDate <= now) alarmDate.setDate(alarmDate.getDate() + 1);
+  const alarmDate = new Date(`${dateInput}T${timeInput}`);
+  
+  if (isNaN(alarmDate.getTime()) || alarmDate <= now) {
+    statusMsg.textContent = 'Please pick a future time.';
+    statusMsg.style.color = '#e53e3e'; return;
+  }
+  
   const offsetMs = alarmDate - now;
-  const displayTime = alarmDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const displayTime = alarmDate.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
   
   statusMsg.textContent = `Setting for ${displayTime}...`;
   statusMsg.style.color = '#4299e1';
   
   if (webAlarms[alarmId]) {
-    if (webAlarms[alarmId].timeout) {
-      clearTimeout(webAlarms[alarmId].timeout);
-    }
+    if (webAlarms[alarmId].timeout) clearTimeout(webAlarms[alarmId].timeout);
   }
   
   sendToESP32(
     `/setAlarm?time=${offsetMs}&message=${encodeURIComponent(nameInput)}`,
     function () {
       const targetTime = Date.now() + offsetMs;
-      
       webAlarms[alarmId] = {
-        targetTime: targetTime,
-        name: nameInput,
-        displayTime: displayTime,
+        targetTime: targetTime, name: nameInput, displayTime: displayTime,
         timeout: setTimeout(function () {
           alert(`🔔 ALARM! ${displayTime}\n${nameInput}`);
           if (webAlarms[alarmId]) {
@@ -645,31 +542,19 @@ function setAlarmFromCard(buttonElement) {
           }
         }, offsetMs)
       };
-      
-      statusMsg.innerHTML = `Set for ${displayTime} - "${nameInput}"`;
+      statusMsg.innerHTML = `Set for ${displayTime}`;
       statusMsg.style.color = '#38a169';
       
-      const setBtn = alarmCard.querySelector('.set-alarm-btn');
-      const cancelBtn = alarmCard.querySelector('.cancel-alarm-btn');
-      setBtn.disabled = true;
-      cancelBtn.disabled = false;
-      
+      alarmCard.querySelector('.set-alarm-btn').disabled = true;
+      alarmCard.querySelector('.cancel-alarm-btn').disabled = false;
       const countdownSpan = alarmCard.querySelector('.countdown-display');
-      if (countdownSpan) {
-        countdownSpan.classList.add('active');
-      }
+      if (countdownSpan) countdownSpan.classList.add('active');
       
       updateActiveAlarmsList();
-      
       alarmCard.style.backgroundColor = '#f0fff4';
-      setTimeout(() => {
-        alarmCard.style.backgroundColor = '';
-      }, 300);
+      setTimeout(() => { alarmCard.style.backgroundColor = ''; }, 300);
     },
-    function (msg) {
-      statusMsg.textContent = `Failed: ${msg}`;
-      statusMsg.style.color = '#e53e3e';
-    }
+    function (msg) { statusMsg.textContent = `Failed: ${msg}`; statusMsg.style.color = '#e53e3e'; }
   );
 }
 
@@ -679,140 +564,83 @@ function cancelAlarmFromCard(buttonElement) {
   const statusMsg = alarmCard.querySelector('.alarm-status-message');
   
   if (webAlarms[alarmId]) {
-    if (webAlarms[alarmId].timeout) {
-      clearTimeout(webAlarms[alarmId].timeout);
-    }
+    if (webAlarms[alarmId].timeout) clearTimeout(webAlarms[alarmId].timeout);
     delete webAlarms[alarmId];
   }
-  
   sendToESP32(`/cancelAlarm`, null, null);
-  
   statusMsg.textContent = 'Cancelled.';
   statusMsg.style.color = '#666666';
   
-  const setBtn = alarmCard.querySelector('.set-alarm-btn');
-  const cancelBtn = alarmCard.querySelector('.cancel-alarm-btn');
-  setBtn.disabled = false;
-  cancelBtn.disabled = true;
-  
+  alarmCard.querySelector('.set-alarm-btn').disabled = false;
+  alarmCard.querySelector('.cancel-alarm-btn').disabled = true;
   const countdownSpan = alarmCard.querySelector('.countdown-display');
-  if (countdownSpan) {
-    countdownSpan.textContent = '--:--:--';
-    countdownSpan.classList.remove('active');
-  }
-  
+  if (countdownSpan) { countdownSpan.textContent = '--:--:--'; countdownSpan.classList.remove('active'); }
   updateActiveAlarmsList();
-  
-  alarmCard.style.backgroundColor = '#fff5f5';
-  setTimeout(() => {
-    alarmCard.style.backgroundColor = '';
-  }, 300);
 }
 
-function startAlarmCountdownUpdater() {
-  setInterval(updateAllCountdowns, 1000);
-}
+function startAlarmCountdownUpdater() { setInterval(updateAllCountdowns, 1000); }
 
 function updateAllCountdowns() {
   const now = Date.now();
-  
   for (const [alarmId, alarmData] of Object.entries(webAlarms)) {
     const alarmCard = document.querySelector(`.alarm-card[data-alarm-id="${alarmId}"]`);
     if (alarmCard) {
       const countdownSpan = alarmCard.querySelector('.countdown-display');
       if (countdownSpan && alarmData.targetTime) {
         const remainingMs = alarmData.targetTime - now;
-        
         if (remainingMs <= 0) {
-          countdownSpan.textContent = '00:00:00';
-          countdownSpan.style.color = '#e53e3e';
+          countdownSpan.textContent = '00:00:00'; countdownSpan.style.color = '#e53e3e';
         } else {
           const hours = Math.floor(remainingMs / 3600000);
           const minutes = Math.floor((remainingMs % 3600000) / 60000);
           const seconds = Math.floor((remainingMs % 60000) / 1000);
-          
           countdownSpan.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-          
-          if (remainingMs < 60000) {
-            countdownSpan.style.color = '#e53e3e';
-          } else if (remainingMs < 300000) {
-            countdownSpan.style.color = '#ed8936';
-          } else {
-            countdownSpan.style.color = '#38a169';
-          }
+          if (remainingMs < 60000) countdownSpan.style.color = '#e53e3e';
+          else if (remainingMs < 300000) countdownSpan.style.color = '#ed8936';
+          else countdownSpan.style.color = '#38a169';
         }
       }
     }
   }
-  
   updateActiveAlarmsList();
 }
 
 function updateActiveAlarmsList() {
   const activeListContainer = document.getElementById('active-alarms-list');
   if (!activeListContainer) return;
-  
   const activeAlarmsArray = Object.entries(webAlarms);
-  
   if (activeAlarmsArray.length === 0) {
-    activeListContainer.innerHTML = '<p class="no-alarms">No active alarms</p>';
-    return;
+    activeListContainer.innerHTML = '<p class="no-alarms">No active alarms</p>'; return;
   }
-  
   const now = Date.now();
   let html = '';
-  
   for (const [alarmId, alarmData] of activeAlarmsArray) {
     const remainingMs = alarmData.targetTime - now;
-    let timeLeft = '';
-    let warningClass = '';
-    
-    if (remainingMs <= 0) {
-      timeLeft = '00:00:00';
-      warningClass = 'warning';
-    } else {
+    let timeLeft = ''; let warningClass = '';
+    if (remainingMs <= 0) { timeLeft = '00:00:00'; warningClass = 'warning'; }
+    else {
       const hours = Math.floor(remainingMs / 3600000);
       const minutes = Math.floor((remainingMs % 3600000) / 60000);
       const seconds = Math.floor((remainingMs % 60000) / 1000);
       timeLeft = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-      
       if (remainingMs < 60000) warningClass = 'warning';
     }
-    
     html += `
       <div class="active-alarm-item">
         <span class="alarm-name">${escapeHtml(alarmData.name)}</span>
         <span class="alarm-time-left ${warningClass}">${timeLeft}</span>
-      </div>
-    `;
+      </div>`;
   }
-  
   activeListContainer.innerHTML = html;
 }
 
 function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
+  const div = document.createElement('div'); div.textContent = text; return div.innerHTML;
 }
 
-function setAlarm() {
-  const firstAlarmCard = document.querySelector('.alarm-card');
-  if (firstAlarmCard) {
-    const setBtn = firstAlarmCard.querySelector('.set-alarm-btn');
-    if (setBtn) setAlarmFromCard(setBtn);
-  }
-}
-
-function cancelAlarm() {
-  const firstAlarmCard = document.querySelector('.alarm-card');
-  if (firstAlarmCard) {
-    const cancelBtn = firstAlarmCard.querySelector('.cancel-alarm-btn');
-    if (cancelBtn) cancelAlarmFromCard(cancelBtn);
-  }
-}
-
-// Navigation
+// =============================================
+//  NAVIGATION & SYSTEM
+// =============================================
 function initNavigation() {
   const navLinks = document.querySelectorAll('.nav-link');
   navLinks.forEach(link => {
@@ -846,13 +674,8 @@ function updateActiveOnScroll() {
   });
 }
 
-function toggleMobileMenu() {
-  document.getElementById('sidebar')?.classList.toggle('mobile-open');
-}
-
-function closeMobileMenu() {
-  document.getElementById('sidebar')?.classList.remove('mobile-open');
-}
+function toggleMobileMenu() { document.getElementById('sidebar')?.classList.toggle('mobile-open'); }
+function closeMobileMenu() { document.getElementById('sidebar')?.classList.remove('mobile-open'); }
 
 async function logout() {
   try { if (window.supabaseClient) await window.supabaseClient.auth.signOut(); } catch(e){}
@@ -860,20 +683,17 @@ async function logout() {
   window.location.href = 'loginpage.html';
 }
 
-// Exports
 window.sendMode         = sendMode;
 window.testConnection   = testConnection;
 window.sendBotName      = sendBotName;
-window.setAlarm         = setAlarm;
-window.cancelAlarm      = cancelAlarm;
-window.startPomodoro    = startPomodoro;
-window.stopPomodoro     = stopPomodoro;
-window.resetPomodoro    = resetPomodoro;
-window.toggleBeatSync   = toggleBeatSync;
 window.addNewAlarmCard  = addNewAlarmCard;
 window.deleteAlarm      = deleteAlarm;
 window.setAlarmFromCard = setAlarmFromCard;
 window.cancelAlarmFromCard = cancelAlarmFromCard;
+window.startPomodoro    = startPomodoro;
+window.stopPomodoro     = stopPomodoro;
+window.resetPomodoro    = resetPomodoro;
+window.toggleBeatSync   = toggleBeatSync;
 window.logout           = logout;
 window.toggleMobileMenu = toggleMobileMenu;
 window.closeMobileMenu  = closeMobileMenu;
