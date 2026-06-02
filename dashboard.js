@@ -309,7 +309,7 @@ let pomodoroRemaining = 0;
 let currentWorkDuration = 25;
 let currentBreakDuration = 5;
 let pomodoroActive = false;
-let lastSentRemaining = -1;
+let lastSyncState = "";
 
 function startPomodoro() {
   if (pomodoroInterval) {
@@ -319,7 +319,7 @@ function startPomodoro() {
   
   pomodoroActive = true;
   isBreakTime = false;
-  lastSentRemaining = -1;
+  lastSyncState = "";
   
   currentWorkDuration = parseInt(document.getElementById('pomo-minutes')?.value) || 25;
   currentBreakDuration = parseInt(document.getElementById('break-minutes')?.value) || 5;
@@ -401,20 +401,14 @@ function updatePomodoroCountdown() {
 }
 
 function updateESP32Timer(remainingSeconds, isBreak) {
-  if (remainingSeconds === lastSentRemaining) return;
-  lastSentRemaining = remainingSeconds;
+  const currentState = isBreak ? "break" : "work";
+  if (lastSyncState === currentState) return; 
+  lastSyncState = currentState;
   
-  const mins = Math.floor(remainingSeconds / 60);
-  const secs = remainingSeconds % 60;
-  const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-  
-  if (isBreak) {
-    const breakMsg = `BREAK ${timeStr}`;
-    sendToESP32(`/setAlarm?time=${remainingSeconds * 1000}&message=${encodeURIComponent(breakMsg)}`, null, null);
-    sendToESP32(`/setMode?m=8`, null, null); 
+  if (!isBreak) {
+    sendToESP32(`/setPomodoro?minutes=${currentWorkDuration}&breakMins=${currentBreakDuration}`, null, null);
   } else {
-    const remainingMinutes = Math.ceil(remainingSeconds / 60);
-    sendToESP32(`/setPomodoro?minutes=${remainingMinutes}`, null, null);
+    // Let the ESP32 handle the break transition natively
   }
 }
 
@@ -446,7 +440,7 @@ function completePomodoro() {
   }
   
   pomodoroActive = false;
-  lastSentRemaining = -1;
+  lastSyncState = "";
   
   setFeedback('pomo-status', `🎉 CONGRATULATIONS! Pomodoro session complete! 🎉`, '#38a169');
   
@@ -473,7 +467,7 @@ function stopPomodoro() {
   
   pomodoroActive = false;
   isBreakTime = false;
-  lastSentRemaining = -1;
+  lastSyncState = "";
   
   sendToESP32('/setMode?m=0', null, null);
   sendToESP32('/resetPomodoro', null, null);
@@ -505,7 +499,7 @@ function resetPomodoro() {
   
   pomodoroActive = false;
   isBreakTime = false;
-  lastSentRemaining = -1;
+  lastSyncState = "";
   currentWorkDuration = parseInt(document.getElementById('pomo-minutes')?.value) || 25;
   
   const mins = currentWorkDuration;
